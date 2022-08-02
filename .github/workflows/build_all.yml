@@ -137,6 +137,7 @@ jobs:
         uses: lhotari/action-upterm@v1
       - name: Build AGW
         run: |
+          export MAGMA_DEV_MEMORY_MB=4096
           cd lte/gateway
           fab release package:destroy_vm=True
           mkdir magma-packages
