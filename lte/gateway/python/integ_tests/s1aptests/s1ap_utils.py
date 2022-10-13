@@ -901,7 +901,7 @@ class MagmadUtil(object):
         return subprocess.check_output(
             param_list,
             shell=False,
-        ).decode("utf-8")
+        ).decode("utf-8", errors="ignore")
 
     def exec_command_capture_output(self, command: str) -> subprocess.CompletedProcess:
         """Run a command remotely on magma_dev VM.

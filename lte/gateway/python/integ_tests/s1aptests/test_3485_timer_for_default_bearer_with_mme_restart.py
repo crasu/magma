@@ -53,7 +53,7 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-
+        self._s1ap_wrapper.magmad_util.exec_command_output('ls')
         # APN of the secondary PDN
         ims = {
             'apn_name': 'ims',  # APN-name
@@ -107,11 +107,16 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
         # Receive PDN CONN RSP/Activate default EPS bearer context request
 
+        print("--------------------- LOG BEFORE RESTART ----------------:")
+        print(self._s1ap_wrapper.magmad_util.exec_command_output("cat /var/log/mme.log"))
         print('************************* Restarting MME service on gateway')
-        wait_for_restart = 20
+        wait_for_restart = 1
         self._s1ap_wrapper.magmad_util.restart_services(
             ['mme'], wait_for_restart,
         )
+
+        print(str(self._s1ap_wrapper.magmad_util.exec_command_output("until nc -zv localhost 50073 ; do i=$[$i+1]; sleep 1 ; done")))
+
 
         print(
             '*** Sending indication to drop Activate Default EPS bearer Ctxt'
@@ -126,12 +131,15 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
             s1ap_types.tfwCmd.UE_DROP_ACTV_DEFAULT_EPS_BEARER_CTXT_REQ,
             drop_acctv_dflt_bearer_req,
         )
-
+        print("--------------------- LOG AFTER RESTART ---------------:")
+        print(self._s1ap_wrapper.magmad_util.exec_command_output(" cat /var/log/mme.log"))
         retransmitted_response = self._s1ap_wrapper.s1_util.get_response()
         assert (
             retransmitted_response.msg_type
             == s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
+
+
         act_def_bearer_req = retransmitted_response.cast(
             s1ap_types.uePdnConRsp_t,
         )
